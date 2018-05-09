@@ -1,0 +1,61 @@
+import org.redline_rpm.header.Os
+import org.redline_rpm.header.RpmType
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath('org.springframework.boot:spring-boot-gradle-plugin:2.0.1.RELEASE')
+        classpath('com.netflix.nebula:gradle-ospackage-plugin:4.8.0')
+    }
+
+}
+repositories {
+    mavenCentral()
+}
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: "nebula.ospackage-application-spring-boot"
+mainClassName = 'restservices.Application'
+
+configurations {
+    compile.exclude module: 'spring-boot-starter-tomcat'
+}
+
+bootJar {
+    baseName = "gs-rest-service"
+    version = '0.1.0'
+    launchScript()
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework.boot:spring-boot-starter-jetty")
+}
+
+ospackage {
+    packageName = 'testmicroservicesuit'
+    version = 1
+    type = RpmType.BINARY
+    os = Os.LINUX
+
+    preInstall file('scripts/preInstall.sh')
+    postUninstallFile file('scripts/postUninstall.sh')
+
+    user "microservice"
+    permissionGroup "microservice"
+}
+
+buildDeb {
+    user "microservice"
+    permissionGroup "microservice"
+    link("/etc/init.d/startproject", "/opt/startproject-boot/bin/startproject")
+}
+
